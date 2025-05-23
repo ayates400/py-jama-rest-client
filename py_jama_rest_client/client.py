@@ -142,6 +142,21 @@ class JamaClient:
         project_data = self.__get_all(resource_path,  allowed_results_per_page=allowed_results_per_page)
         return project_data
 
+    def get_project_by_id(self, project_id: int):
+        resource_path = f'projects/{project_id}'
+        try:
+            response = self.__core.get(resource_path)
+        except CoreException as err:
+            py_jama_rest_client_logger.error(err)
+            raise APIException(str(err))
+        JamaClient.__handle_response_status(response)
+        return response.json()['data']
+
+    def get_itemtypes_in_project(self, project_id: int, allowed_results_per_page=__allowed_results_per_page):
+        resource_path = f'projects/{project_id}/itemtypes'
+        project_data = self.__get_all(resource_path, allowed_results_per_page=allowed_results_per_page)
+        return project_data
+
     def get_filter_results(self, filter_id, project_id=None, allowed_results_per_page=__allowed_results_per_page):
         """
         Get all results items for the filter with the specified ID
@@ -862,6 +877,40 @@ class JamaClient:
         params = None
         tag_results = self.__get_all(resource_path, params=params, allowed_results_per_page=allowed_results_per_page)
         return tag_results
+
+    def get_usergroups(self, allowed_results_per_page=__allowed_results_per_page):
+        resource_path = 'usergroups'
+        groups = self.__get_all(resource_path, allowed_results_per_page=allowed_results_per_page)
+        return groups
+
+    def get_usergroup_users(self, usergroup_id, allowed_results_per_page=__allowed_results_per_page):
+        resource_path = f'usergroups/{usergroup_id}/users'
+        users = self.__get_all(resource_path,  allowed_results_per_page=allowed_results_per_page)
+        return users
+
+    def post_usergroup_user(self, user_id, group_id):
+        body = {
+            'user': user_id
+        }
+        resource_path = f'usergroups/{group_id}/users'
+        headers = {'content-type': 'application/json'}
+        try:
+            response = self.__core.post(resource_path, data=json.dumps(body), headers=headers)
+        except CoreException as err:
+            py_jama_rest_client_logger.error(err)
+            raise APIException(str(err))
+        JamaClient.__handle_response_status(response)
+        return response.json()['meta']['id']
+
+    def delete_usergroup_user(self, user_id, group_id):
+        resource_path = f'usergroups/{group_id}/users/{user_id}'
+        try:
+            response = self.__core.delete(resource_path)
+        except CoreException as err:
+            py_jama_rest_client_logger.error(err)
+            raise APIException(str(err))
+        JamaClient.__handle_response_status(response)
+        return response.status_code
 
     def get_users(self, allowed_results_per_page=__allowed_results_per_page):
         """
